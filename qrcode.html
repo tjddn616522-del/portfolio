@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR 코드 생성기</title>
+    <!-- Tailwind CSS CDN을 로드하여 깔끔한 디자인을 적용합니다. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- qrcode.js 라이브러리를 로드하여 QR 코드 생성 기능을 사용합니다. -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        /* 'Inter' 폰트를 적용하여 가독성을 높입니다. */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* QR 코드 컨테이너의 스타일을 정의하여 캔버스가 제대로 보이게 합니다. */
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+            height: 250px;
+        }
+        /* 모바일 기기에서 캔버스가 너무 커지지 않도록 조정합니다. */
+        #qrcode canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- 메인 컨테이너: 카드 모양의 UI를 구성합니다. -->
+    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl w-full max-w-xl text-center">
+        <!-- 제목 -->
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">QR 코드 생성기</h1>
+        <!-- 설명 -->
+        <p class="text-gray-500 mb-6 md:mb-8">텍스트나 링크를 입력하고 버튼을 눌러 QR 코드를 만들어보세요!</p>
+
+        <!-- 입력 필드 -->
+        <input type="text" id="qrInput" placeholder="여기에 텍스트 또는 URL을 입력하세요"
+            class="w-full p-4 mb-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder-gray-400 text-sm md:text-base" />
+
+        <!-- 생성 버튼 -->
+        <button id="generateBtn"
+            class="w-full bg-blue-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300 mb-6">
+            생성하기
+        </button>
+
+        <!-- QR 코드가 표시될 컨테이너 -->
+        <div id="qrcode" class="bg-white p-2 rounded-xl shadow-inner mx-auto mb-4 border border-gray-200"></div>
+
+        <!-- 메시지 및 복사 버튼 컨테이너 -->
+        <div id="messageContainer" class="flex flex-col items-center">
+            <!-- 상태 메시지 -->
+            <p id="statusMessage" class="text-gray-500 text-sm md:text-base mb-2"></p>
+            <!-- 복사 버튼 (초기에는 숨김) -->
+            <button id="copyBtn" class="bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-300 transition-colors text-sm" style="display: none;">
+                텍스트 복사하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOMContentLoaded 이벤트는 HTML 문서가 완전히 로드되고 파싱되었을 때 발생합니다.
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // 필요한 DOM 요소들을 가져옵니다.
+            const qrInput = document.getElementById('qrInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const qrcodeDiv = document.getElementById('qrcode');
+            const statusMessage = document.getElementById('statusMessage');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // QRCode 객체를 저장할 변수입니다.
+            let qrCode = null;
+
+            // QR 코드 생성 함수입니다.
+            const generateQrCode = () => {
+                const text = qrInput.value.trim();
+
+                // 입력 필드가 비어 있는지 확인합니다.
+                if (text === '') {
+                    statusMessage.textContent = 'QR 코드를 생성하려면 텍스트를 입력해주세요.';
+                    // 기존 QR 코드를 제거합니다.
+                    if (qrCode) {
+                        qrcodeDiv.innerHTML = '';
+                    }
+                    copyBtn.style.display = 'none';
+                    return;
+                }
+
+                // 기존에 생성된 QR 코드가 있다면 제거합니다.
+                if (qrCode) {
+                    qrcodeDiv.innerHTML = '';
+                }
+                
+                // 새로운 QRCode 인스턴스를 생성하고 텍스트를 사용해 QR 코드를 그립니다.
+                qrCode = new QRCode(qrcodeDiv, {
+                    text: text,
+                    width: 250,
+                    height: 250,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                // 생성 상태 메시지를 업데이트합니다.
+                statusMessage.textContent = 'QR 코드가 성공적으로 생성되었습니다.';
+                
+                // 복사 버튼을 표시하고 텍스트 복사 이벤트를 추가합니다.
+                copyBtn.style.display = 'block';
+                copyBtn.onclick = () => {
+                    // 클립보드에 텍스트를 복사합니다.
+                    const tempInput = document.createElement('input');
+                    tempInput.value = text;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    // 복사 완료 메시지를 표시합니다.
+                    statusMessage.textContent = '텍스트가 클립보드에 복사되었습니다!';
+                };
+            };
+
+            // '생성하기' 버튼에 클릭 이벤트 리스너를 추가합니다.
+            generateBtn.addEventListener('click', generateQrCode);
+
+            // 입력 필드에서 'Enter' 키를 누르면 QR 코드를 생성합니다.
+            qrInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    generateQrCode();
+                }
+            });
+            
+            // 초기 상태 메시지를 설정합니다.
+            statusMessage.textContent = 'QR 코드를 생성할 준비가 되었습니다.';
+        });
+    </script>
+</body>
+</html>
