@@ -1,4 +1,4 @@
-<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/9bdbd3f7-4328-4ad7-a4bf-9e146324a474" /># AI Developer Portfolio
+# AI Developer Portfolio
 
 ## 기술스택
 
